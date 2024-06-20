@@ -2,26 +2,32 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
+	"time"
+	"log"
 )
 
 const port = ":8002"
 
-type application struct {}
+type application struct{}
 
 func main() {
-	// app := application{}
-	http.HandleFunc(
-		"/",
-		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprint(w, "Hey, how u doin?!")
-		},
-	)
+	app := application{}
+
+	srv := &http.Server{
+		Addr: port,
+		Handler: app.routes(),
+		IdleTimeout: 30 * time.Second,
+		ReadTimeout: 30 * time.Second,
+		ReadHeaderTimeout: 30 * time.Second,
+		WriteTimeout: 30 * time.Second,
+	}
 	fmt.Println("Starting web app on port ", port)
 
-	err := http.ListenAndServe(port, nil)
+	err := srv.ListenAndServe()
 	if err != nil {
-		log.Panic(err)
+		log.Fatal(err)
 	}
+
+
 }

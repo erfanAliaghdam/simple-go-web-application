@@ -1,10 +1,12 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 )
 
 type templateData struct {
@@ -24,6 +26,12 @@ func (app *application) render(w http.ResponseWriter, t string, td *templateData
 	if tmpl == nil {
 		newTemplate, err := app.buildTemplateFromDisk(t)
 		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				// Handle 404 not found
+				w.WriteHeader(http.StatusNotFound)
+				app.render(w, "404.page.gohtml", nil)
+				return
+			}
 			log.Println("Error building template: ", err)
 		}
 		log.Println("building template from disk.")
@@ -44,6 +52,7 @@ func (app *application) buildTemplateFromDisk(t string) (*template.Template, err
 	templateFiles := []string{
 		"./templates/base.layout.gohtml",
 		"./templates/partials/header.partial.gohtml",
+		"./templates/partials/navbar.partial.gohtml",
 		"./templates/partials/footer.partial.gohtml",
 		fmt.Sprintf("./templates/%s", t),
 	}
